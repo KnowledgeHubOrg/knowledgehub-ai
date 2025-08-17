@@ -3,8 +3,12 @@ from jose import jwt, JWTError
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from typing import Any
+import os
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.database import get_db
+from app.db.models import Role
 
-SECRET_KEY = "supersecretkey"
+SECRET_KEY = os.getenv("SECRET_KEY", "changeme")
 ALGORITHM = "HS256"
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
@@ -34,6 +38,12 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> Any:
         raise HTTPException(status_code=401, detail="Invalid token")
 
 # Require admin role
-def require_admin(user: Any) -> None:
-    if user.get("role_id") != "admin":
+async def require_admin(user: Any, db: AsyncSession = Depends(get_db)) -> None:
+    role_id = user.get("role_id")
+    if not role_id:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    # Query role name from DB
+    result = await db.execute(Role.__table__.select().where(Role.id == role_id))
+    role = result.fetchone()
+    if not role or role.name != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")

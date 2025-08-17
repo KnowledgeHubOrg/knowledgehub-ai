@@ -1,0 +1,259 @@
+{
+  "info": {
+    "name": "KnowledgeHub API Collection",
+    "description": "Postman collection for all KnowledgeHub APIs with environment variables and automatic access token handling.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": [ "{{base_url}}" ],
+              "path": [ "auth", "register" ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"testpass\",\n  \"role_id\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  var json = pm.response.json();",
+                  "  pm.environment.set('access_token', json.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [ "{{base_url}}" ],
+              "path": [ "auth", "login" ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"testpass\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Password Reset Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/password-reset-request",
+              "host": [ "{{base_url}}" ],
+              "path": [ "auth", "password-reset-request" ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Password Reset Confirm",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/password-reset-confirm",
+              "host": [ "{{base_url}}" ],
+              "path": [ "auth", "password-reset-confirm" ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{reset_token}}\",\n  \"new_password\": \"newpass\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Documents",
+      "item": [
+        {
+          "name": "Upload Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "multipart/form-data" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/documents/upload",
+              "host": [ "{{base_url}}" ],
+              "path": [ "documents", "upload" ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "title", "value": "Sample Document", "type": "text" },
+                { "key": "domain_id", "value": "{{domain_id}}", "type": "text" },
+                { "key": "file", "type": "file" },
+                { "key": "tags", "value": "[]", "type": "text" },
+                { "key": "file_type", "value": "pdf", "type": "text" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/documents/",
+              "host": [ "{{base_url}}" ],
+              "path": [ "documents" ]
+            }
+          }
+        },
+        {
+          "name": "Get Document by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/documents/{{doc_id}}",
+              "host": [ "{{base_url}}" ],
+              "path": [ "documents", "{{doc_id}}" ]
+            }
+          }
+        },
+        {
+          "name": "Update Document",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/documents/{{doc_id}}",
+              "host": [ "{{base_url}}" ],
+              "path": [ "documents", "{{doc_id}}" ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Title\",\n  \"content\": \"Updated content\",\n  \"domain_id\": \"{{domain_id}}\",\n  \"tags\": [],\n  \"file_type\": \"pdf\",\n  \"status\": \"updated\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Document",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/documents/{{doc_id}}",
+              "host": [ "{{base_url}}" ],
+              "path": [ "documents", "{{doc_id}}" ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Questions",
+      "item": [
+        {
+          "name": "Ask Question",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/questions/ask",
+              "host": [ "{{base_url}}" ],
+              "path": [ "questions", "ask" ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"question_text\": \"What is HR policy?\",\n  \"domain_id\": \"{{domain_id}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Escalations",
+      "item": [
+        {
+          "name": "List Escalations",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/escalations/",
+              "host": [ "{{base_url}}" ],
+              "path": [ "escalations" ]
+            }
+          }
+        },
+        {
+          "name": "Resolve Escalation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/escalations/resolve/{{escalation_id}}",
+              "host": [ "{{base_url}}" ],
+              "path": [ "escalations", "resolve", "{{escalation_id}}" ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "access_token", "value": "" },
+    { "key": "user_id", "value": "00000000-0000-0000-0000-000000000000" },
+    { "key": "domain_id", "value": "00000000-0000-0000-0000-000000000000" },
+    { "key": "doc_id", "value": "" },
+    { "key": "escalation_id", "value": "" },
+    { "key": "reset_token", "value": "" }
+  ]
+}

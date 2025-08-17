@@ -12,14 +12,13 @@ router = APIRouter()
 @router.post("/ask", response_model=schemas.Answer)
 async def ask_question(
     question: schemas.QuestionCreate,
-    current_user: schemas.User = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ) -> Any:
     # Store question
-    # Create question (stub, replace with actual CRUD logic)
     from app.db.models import Question, Answer, Escalation
     import uuid
-    db_question = Question(id=uuid.uuid4(), user_id=current_user.id, question_text=question.question_text, domain_id=question.domain_id)
+    db_question = Question(id=uuid.uuid4(), user_id=current_user["id"], question_text=question.question_text, domain_id=question.domain_id)
     db.add(db_question)
     await db.commit()
     await db.refresh(db_question)
@@ -33,7 +32,7 @@ async def ask_question(
 
     # Escalate if confidence low
     if confidence < 0.7:
-        escalation = Escalation(id=uuid.uuid4(), question_id=db_question.id, user_id=current_user.id, status="Pending")
+        escalation = Escalation(id=uuid.uuid4(), question_id=db_question.id, user_id=current_user["id"], status="Pending")
         db.add(escalation)
         await db.commit()
         await db.refresh(escalation)

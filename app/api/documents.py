@@ -32,4 +32,34 @@ async def upload_document(
     await ingest_document(db, doc, file)
     return doc
 
-# ... Add update, delete, list endpoints ...
+
+# List all documents
+@router.get("/", response_model=List[schemas.Document])
+async def list_documents(db: AsyncSession = Depends(get_db), current_user: schemas.User = Depends(get_current_user)) -> Any:
+    docs = await crud.list_documents(db)
+    return docs
+
+# Get a document by ID
+@router.get("/{doc_id}", response_model=schemas.Document)
+async def get_document(doc_id: str, db: AsyncSession = Depends(get_db), current_user: schemas.User = Depends(get_current_user)) -> Any:
+    doc = await crud.get_document_by_id(db, doc_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return doc
+
+# Update a document
+@router.put("/{doc_id}", response_model=schemas.Document)
+async def update_document(doc_id: str, doc_update: schemas.DocumentCreate, db: AsyncSession = Depends(get_db), current_user: schemas.User = Depends(get_current_user)) -> Any:
+    require_admin(current_user)
+    doc = await crud.update_document(db, doc_id, doc_update)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return doc
+
+# Delete a document
+@router.delete("/{doc_id}", status_code=204)
+async def delete_document(doc_id: str, db: AsyncSession = Depends(get_db), current_user: schemas.User = Depends(get_current_user)) -> None:
+    require_admin(current_user)
+    success = await crud.delete_document(db, doc_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Document not found")

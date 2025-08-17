@@ -19,9 +19,15 @@ class UserBase(BaseModel):
     name: str
     email: EmailStr
 
+
 class UserCreate(UserBase):
     password: str
     role_id: Optional[UUID]
+
+# For login endpoint: only email and password required
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
 
 class User(UserBase):
     id: UUID

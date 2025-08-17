@@ -18,11 +18,20 @@ async def register(user: schemas.UserCreate, db: AsyncSession = Depends(get_db))
     return await crud.create_user(db, user)
 
 @router.post("/login")
-async def login(form_data: schemas.UserCreate, db: AsyncSession = Depends(get_db)) -> Any:
+async def login(form_data: schemas.UserLogin, db: AsyncSession = Depends(get_db)) -> Any:
     db_user = await crud.get_user_by_email(db, form_data.email)
     if not db_user or not verify_password(form_data.password, getattr(db_user, "password_hash", "")):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    access_token = create_access_token({"sub": str(db_user.id), "role": db_user.role_id})
+    role_id_value = db_user.role_id
+    # If role_id is a UUID, convert to string; if None, keep as None
+    if hasattr(role_id_value, 'hex'):
+        role_id_str = str(role_id_value)
+    else:
+        role_id_str = None
+    access_token = create_access_token({
+        "sub": str(db_user.id),
+        "role": role_id_str
+    })
     return {"access_token": access_token, "token_type": "bearer"}
 
 # Password reset endpoint

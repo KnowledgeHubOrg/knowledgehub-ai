@@ -4,6 +4,37 @@ from app.db import schemas, models
 from typing import Optional
 import uuid
 
+# List all documents
+async def list_documents(db: AsyncSession):
+    result = await db.execute(select(models.Document))
+    return result.scalars().all()
+
+# Get document by ID
+async def get_document_by_id(db: AsyncSession, doc_id: str):
+    result = await db.execute(select(models.Document).where(models.Document.id == doc_id))
+    return result.scalars().first()
+
+# Update document
+async def update_document(db: AsyncSession, doc_id: str, doc_update):
+    doc = await get_document_by_id(db, doc_id)
+    if not doc:
+        return None
+    for field, value in doc_update.dict(exclude_unset=True).items():
+        setattr(doc, field, value)
+    db.add(doc)
+    await db.commit()
+    await db.refresh(doc)
+    return doc
+
+# Delete document
+async def delete_document(db: AsyncSession, doc_id: str):
+    doc = await get_document_by_id(db, doc_id)
+    if not doc:
+        return False
+    await db.delete(doc)
+    await db.commit()
+    return True
+
 async def get_escalations(db: AsyncSession):
     result = await db.execute(select(models.Escalation))
     return result.scalars().all()

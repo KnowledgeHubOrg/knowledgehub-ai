@@ -19,3 +19,5 @@ ollama
 loguru
 pytest
 pytest-asyncio
+langchain
+python-multipart

@@ -1,41 +1,36 @@
+
+import os
+import mimetypes
+from typing import Any, List, Optional
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import Document, DocumentEmbedding
-import mimetypes
+from app.utils.logging import log_action
 from PyPDF2 import PdfReader
 import docx
-from app.utils.logging import log_action
+import httpx
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-# Local chunking function
+
 def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 100) -> list[str]:
     """
-    Splits text into chunks of chunk_size with overlap.
-    Args:
-        text: The input text to chunk
-        chunk_size: Size of each chunk
-        overlap: Number of overlapping characters between chunks
-    Returns:
-        List of text chunks
+    Splits text into chunks using LangChain's RecursiveCharacterTextSplitter.
     """
-    chunks = []
-    start = 0
-    text_length = len(text)
-    while start < text_length:
-        end = min(start + chunk_size, text_length)
-        chunks.append(text[start:end])
-        start += chunk_size - overlap
-    return chunks
-import httpx
-from typing import Any, List, Optional
+    splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=overlap)
+    return splitter.split_text(text)
 
 async def get_embedding(chunk: str) -> List[float]:
     """
     Call Ollama/OpenAI embedding API to get vector for chunk.
     """
-    # Example: Call Ollama local API
+    ollama_base_url = os.getenv("OLLAMA_BASE_URL")
+    ollama_model = os.getenv("OLLAMA_MODEL")
+    if not ollama_base_url or not ollama_model:
+        raise RuntimeError("OLLAMA_BASE_URL and OLLAMA_MODEL must be set in .env")
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            "http://localhost:11434/api/embeddings",
-            json={"model": "gemma:2b", "prompt": chunk}
+            f"{ollama_base_url}/api/embeddings",
+            json={"model": ollama_model, "prompt": chunk}
         )
         if response.status_code == 200:
             data = response.json()
@@ -61,6 +56,7 @@ async def ingest_document(
     filename = getattr(file, "filename", "")
     mime_type, _ = mimetypes.guess_type(filename)
     chunks = []
+
     if mime_type == "application/pdf" or filename.lower().endswith(".pdf"):
         reader = PdfReader(file)
         for page in reader.pages:
