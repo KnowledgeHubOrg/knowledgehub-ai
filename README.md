@@ -1,6 +1,6 @@
 # KnowledgeHub AI
 
-A modern, production-ready Knowledge Hub platform powered by Retrieval-Augmented Generation (RAG), FastAPI, PostgreSQL, and Ollama LLMs. Designed for secure document management, semantic search, and intelligent Q&A over enterprise knowledge.
+Platform powered by Retrieval-Augmented Generation (RAG), FastAPI, PostgreSQL, and Ollama LLM. Designed for secure document management, semantic search, and intelligent Q&A over enterprise knowledge.
 
 ## Features
 
@@ -19,15 +19,14 @@ A modern, production-ready Knowledge Hub platform powered by Retrieval-Augmented
 - **Dockerized:** Full Docker Compose setup for web, database, Ollama, Redis, pgAdmin.
 - **Database:** PostgreSQL with pgvector extension for vector search.
 - **API:** FastAPI async endpoints for document upload, search, and Q&A.
-- **Sample Data:** Includes sample HR and Tech policy files for testing.
 
 ## Tech Stack
 
 - **Backend:** FastAPI (async), SQLAlchemy (async)
 - **Database:** PostgreSQL + pgvector
 - **Vector Search:** pgvector
-- **LLM:** Ollama (Gemma, Llama3, Mistral, etc.)
-- **Embeddings:** nomic-embed-text, Hugging Face models
+- **LLM:** Ollama
+- **Embeddings:** nomic-embed-text (OLLAMA)
 - **Chunking:** LangChain
 - **Auth:** JWT, passlib
 - **Logging:** loguru, Python logging
