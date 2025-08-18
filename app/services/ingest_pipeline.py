@@ -12,11 +12,15 @@ import httpx
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 
+
+# Semantic chunking using LangChain's splitter (sentence/paragraph boundaries)
 def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 100) -> list[str]:
-    """
-    Splits text into chunks using LangChain's RecursiveCharacterTextSplitter.
-    """
-    splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=overlap)
+    from langchain.text_splitter import RecursiveCharacterTextSplitter
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size,
+        chunk_overlap=overlap,
+        separators=["\n\n", "\n", ". ", "! ", "? "]  # prioritize semantic boundaries
+    )
     return splitter.split_text(text)
 
 async def get_embedding(chunk: str) -> List[float]:
@@ -24,13 +28,13 @@ async def get_embedding(chunk: str) -> List[float]:
     Call Ollama/OpenAI embedding API to get vector for chunk.
     """
     ollama_base_url = os.getenv("OLLAMA_BASE_URL")
-    ollama_model = os.getenv("OLLAMA_MODEL")
-    if not ollama_base_url or not ollama_model:
-        raise RuntimeError("OLLAMA_BASE_URL and OLLAMA_MODEL must be set in .env")
-    async with httpx.AsyncClient() as client:
+    ollama_embedding_model = os.getenv("OLLAMA_EMBEDDING_MODEL")
+    if not ollama_base_url or not ollama_embedding_model:
+        raise RuntimeError("OLLAMA_BASE_URL and OLLAMA_EMBEDDING_MODEL must be set in .env")
+    async with httpx.AsyncClient(timeout=120.0) as client:
         response = await client.post(
             f"{ollama_base_url}/api/embeddings",
-            json={"model": ollama_model, "prompt": chunk}
+            json={"model": ollama_embedding_model, "prompt": chunk}
         )
         if response.status_code == 200:
             data = response.json()

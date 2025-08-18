@@ -49,7 +49,7 @@ class DocumentEmbedding(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id"))
     chunk_text = Column(Text, nullable=False)
-    vector = Column(Vector(384))
+    vector = Column(Vector(768))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     document = relationship("Document", back_populates="embeddings")
 
