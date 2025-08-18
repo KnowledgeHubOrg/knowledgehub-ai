@@ -36,13 +36,19 @@ async def login(form_data: schemas.UserLogin, db: AsyncSession = Depends(get_db)
 
 # Password reset endpoint
 from fastapi import Body
+from pydantic import BaseModel
+
+# Pydantic model for email request
+class EmailRequest(BaseModel):
+    email: str
 from app.utils.security import create_access_token, get_password_hash
 
 @router.post("/password-reset-request")
-async def password_reset_request(email: str = Body(...), db: AsyncSession = Depends(get_db)):
+async def password_reset_request(request: EmailRequest, db: AsyncSession = Depends(get_db)):
     """
     Initiate password reset by generating a reset token (to be sent via email in production).
     """
+    email = request.email
     user = await crud.get_user_by_email(db, email)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
