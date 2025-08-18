@@ -1,0 +1,26 @@
+Tech Policy: Device Usage and Security
+
+1. Purpose
+This policy defines the rules for company device usage and IT security at Acme Corp.
+
+2. Scope
+Applies to all employees using company-provided devices and accessing company networks.
+
+3. Device Usage
+Devices must be used for work-related activities only.
+Personal use is discouraged and may be monitored.
+
+4. Security
+All devices must have up-to-date antivirus software.
+Passwords must be changed every 90 days.
+Do not share login credentials.
+
+5. Data Protection
+Sensitive data must be stored in encrypted folders.
+Data transfers outside the company require manager approval.
+
+6. Incident Reporting
+Report any security incidents to itsecurity@acmecorp.com immediately.
+
+7. Compliance
+Non-compliance may result in disciplinary action.
