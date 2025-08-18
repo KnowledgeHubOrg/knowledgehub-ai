@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
 from app.utils import crud
@@ -11,20 +11,24 @@ router = APIRouter()
 
 @router.post("/upload", response_model=schemas.Document)
 async def upload_document(
-    title: str,
-    domain_id: str,
+    title: str = Form(...),
+    domain_id: str = Form(...),
     file: UploadFile = File(...),
-    tags: Any = None,
-    file_type: str = "",
+    tags: Any = Form(None),
+    file_type: str = Form("") ,
     current_user: schemas.User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ) -> Any:
     # Only admin can upload
-    require_admin(current_user)
+    await require_admin(current_user, db)
     # Save file, chunk, embed, store
     # Create document object (stub, replace with actual CRUD logic)
     from app.db.models import Document
-    doc = Document(title=title, content="", domain_id=domain_id, uploaded_by=current_user.id, tags=tags, file_type=file_type, status="uploaded")
+    # Support both dict and attribute access for current_user.id
+    user_id = getattr(current_user, "id", None)
+    if user_id is None and isinstance(current_user, dict):
+        user_id = current_user.get("id")
+    doc = Document(title=title, content="", domain_id=domain_id, uploaded_by=user_id, tags=tags, file_type=file_type, status="uploaded")
     db.add(doc)
     await db.commit()
     await db.refresh(doc)
@@ -50,7 +54,7 @@ async def get_document(doc_id: str, db: AsyncSession = Depends(get_db), current_
 # Update a document
 @router.put("/{doc_id}", response_model=schemas.Document)
 async def update_document(doc_id: str, doc_update: schemas.DocumentCreate, db: AsyncSession = Depends(get_db), current_user: schemas.User = Depends(get_current_user)) -> Any:
-    require_admin(current_user)
+    await require_admin(current_user, db)
     doc = await crud.update_document(db, doc_id, doc_update)
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")

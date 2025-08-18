@@ -68,11 +68,19 @@ async def ingest_document(
         full_text = "\n".join([para.text for para in doc.paragraphs])
         chunks = chunk_text(full_text)
     elif mime_type == "text/plain" or filename.lower().endswith(".txt"):
-        text = file.read().decode("utf-8") if hasattr(file, "read") else str(file)
+        if hasattr(file, "read"):
+            file_bytes = await file.read()
+            text = file_bytes.decode("utf-8")
+        else:
+            text = str(file)
         chunks = chunk_text(text)
     else:
         # Fallback: treat as text
-        text = file.read().decode("utf-8") if hasattr(file, "read") else str(file)
+        if hasattr(file, "read"):
+            file_bytes = await file.read()
+            text = file_bytes.decode("utf-8")
+        else:
+            text = str(file)
         chunks = chunk_text(text)
 
     # Store chunks and embeddings
