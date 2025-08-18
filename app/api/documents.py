@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status, Form
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
 from app.utils import crud
@@ -12,7 +13,7 @@ router = APIRouter()
 @router.post("/upload", response_model=schemas.Document)
 async def upload_document(
     title: str = Form(...),
-    domain_id: str = Form(...),
+    domain_name: str = Form(...),
     file: UploadFile = File(...),
     tags: Any = Form(None),
     file_type: str = Form("") ,
@@ -21,9 +22,13 @@ async def upload_document(
 ) -> Any:
     # Only admin can upload
     await require_admin(current_user, db)
-    # Save file, chunk, embed, store
-    # Create document object (stub, replace with actual CRUD logic)
-    from app.db.models import Document
+    # Validate domain_name and get domain_id
+    from app.db.models import Document, Domain
+    domain_obj = await db.execute(select(Domain).where(Domain.name == domain_name))
+    domain = domain_obj.scalar_one_or_none()
+    if not domain:
+        raise HTTPException(status_code=400, detail=f"Domain '{domain_name}' not found.")
+    domain_id = domain.id
     # Support both dict and attribute access for current_user.id
     user_id = getattr(current_user, "id", None)
     if user_id is None and isinstance(current_user, dict):
@@ -63,7 +68,7 @@ async def update_document(doc_id: str, doc_update: schemas.DocumentCreate, db: A
 # Delete a document
 @router.delete("/{doc_id}", status_code=204)
 async def delete_document(doc_id: str, db: AsyncSession = Depends(get_db), current_user: schemas.User = Depends(get_current_user)) -> None:
-    require_admin(current_user)
+    await require_admin(current_user)
     success = await crud.delete_document(db, doc_id)
     if not success:
         raise HTTPException(status_code=404, detail="Document not found")
